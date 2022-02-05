@@ -54,6 +54,8 @@ Here are 5 proxies to encode and measure compositionality .
 
 2. Some of these do not correctly represent how we parse natural language,neverthless they are still useful.
 
+Ask audience:
+Tell me a practical task that doesn't require compositional generalization ?(definition is ill defined or is not yet instructive enough to make progress)
 
  ## Systematicity:
  
