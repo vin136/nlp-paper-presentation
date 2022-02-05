@@ -228,10 +228,21 @@ a. If we want our model to have some sensitivity to word ordering - we create a 
 
 b. And some historical baggage -> Encoder decoder style architecture.
 
+“encoder-decoder attention” performs multi-head attention over the output of the decoder, the Key and Value vectors come from the output of the encoder but the queries come from the previous decoder layer. “This allows every position in the decoder to attend over all positions in the input sequence”
+
+
+
+
 (1) the type of position en-codings
 (2) the use of copy decoders
 (3) modelsize, 
 (4) weight sharing
 (5) the use of interme-diate representations for prediction
+
+**the type of position en-codings**
+a.Learned positional embedddings - fixed for each position
+b.Sines and cosines of various frequencies(can learn about relative position)
+c.
+
 
 
