@@ -3,10 +3,15 @@ What ?
 This paper is trying to study the effect of inductive biases imposed by various design choices of a Transformer model to solve compositional tasks.
 
 Goal Of the presentation:
+
 Understand what do we mean by 
+
 a. Compositional tasks
+
 b.Inductive bias
+
 c. Transformer and the design choices we have
+
 d. Wrap it by appreciating the Empirical results.
 
 
@@ -22,37 +27,46 @@ The models we build consist of simple primitives and the rules for combining the
 
 eg: 
 a. Consider the Software we build.
+
 Interoperability and compositionality(more clearly visible in Functional languages like Haskell)
 eg: Compositionality is at the heart of UNIX
 cat \var\log\nginx\access.log | awk '{print $7}' | sort | uniq -c | sort -r -n | head -n 5
 We have managed to bulid complex software as we can seamlessly use other peoples code to make our own.
 
 b.Consider the Math we discovered.
+
 Linear Algebra -> Start with defining the axioms of a vector space -> Rest all (the notion of spannig sets,independence, linear mappings,change of basis etc) can be seen as implications. (Thus under right inductive bias the code length of Linear Algebra will be much smaller than a 300 page-college textbook).
 Note: This is true for all of mathematics, people lately discovered this and is studying under the area called CATEGORY THEORY.
 
 Composition (Practically Speaking)
+
 **Task** We want to measure and build models that generalize via composition ?
 
 Remember in the end we need concrete and repeatable tests to benchmark our progress.
 
 Wait but how would you quantify this ?
-Here are 5 proxies to encode and measure compositionality ? 
+
+Here are 5 proxies to encode and measure compositionality .
+
 **Warning**: 
 
-1.we do not yet have a consensus and these are just heuristics that the community seems to have agreed to live with for now.
+1.we do not yet have a consensus and these are just heuristics that the community seems to have agreed to live with, for now.
 
 2. Some of these do not correctly represent how we parse natural language,neverthless they are still useful.
+
 
  ## Systematicity:
  
  Definition:
+ 
  “[t]he  ability  to  produce/understand  some  sentences  is  intrinsically  connected  to  the ability to produce/understand certain others” (Fodor and Pylyshyn, 1988, p.  25)" - How it's defined by original authors who introduced it.
  
 In Action:
+
  someone who understand ‘brown dog’ and ‘black cat’ also understands ‘brown cat’.
 
 Critique:
+
 According to definition if I use a dictionary to store the meanings of all sentences, I would be able to understand any variation of the original sentence -> NO Systematicity
 But by the same logic any out-of-distribution generalization can be attributed to Systematicity. -> So it's vacuous.
  
@@ -141,5 +155,83 @@ we redistribute the training and testing data such that there is no evidenceat a
  In the paper, we will look at task-accuracy or any other single metric. Some datasets can only measure few of the attributes of Compositionality that we discussed - but we ignore all that use a single summary statistic.
  
  There will be brief slide showing the datasets and we will put the faith on the authors that everything is taken care of(splitting traning and test sets appropriately so that we only measure the phenomenon we are thinking we are - like the gotcha above - taking care of frequency of synonymous words.)
+
+
+## Everything You need to know abount Inductive biases and Transformers.
+
+Objective: Look at this picture and understand most of what's happening
+
+<img width="1049" alt="Screen Shot 2022-02-04 at 7 29 29 PM" src="https://user-images.githubusercontent.com/21222766/152620555-426165b7-7570-4bed-bd1d-5f6f7e6e51e6.png">
+
+As a cosequence maybe -> Convince (try to) you all that transformers have less inductive biases to begin with than a typical CNN(or others) -> Thus they are a better starting point as we can learn those from data or we can add-in what's necessary at our will.
+
+
+
+
+Inductive Bias - Make some models more likely than others before you see that data. In other words force the model to know what you know before starting out.
+
+Comments: Bayesian modeling does this naturally but here i meant them in a more general sense.
+
+Let's excercise our ability to stare at images and figure out inductive biases.
+
+
+Fully connected vs CNN
+
+
+Fully connected 
+
+<img width="678" alt="Screen Shot 2022-02-04 at 7 08 36 PM" src="https://user-images.githubusercontent.com/21222766/152619659-34b8409b-2016-4bab-ab33-f36f4d857aff.png">
+
+CNN
+
+<img width="680" alt="Screen Shot 2022-02-04 at 7 06 53 PM" src="https://user-images.githubusercontent.com/21222766/152619211-f52659b0-b03d-4ea4-a402-ed4076084ba8.png">
+
+
+What I know:
+
+a. In Natural signals(eg: images,sound etc) there are strong local correlations.(In otherwords predicting future is easy given recent past compared to earlier versions). In images it's over spatial dimensions whereas in say Sound or Natural language it's over temporal dimension. - `Locality`
+
+
+b.Same Patterns repeat again and again. - `Stationarity`
+
+c. There are hierarchies. Letters make up words,words make up sentences and so on - `Compositionality`.
+
+
+In the above figure(CNN) If I stack the 2-d input into a 1-d vector by unrolling left to right and top to bottom, the convolution can be represented as a matrix multiplication.
+
+
+
+
+
+<img width="679" alt="Screen Shot 2022-02-04 at 7 25 38 PM" src="https://user-images.githubusercontent.com/21222766/152620354-7044a746-c909-448e-936d-a5ec6a7044c9.png">
+
+
+The `zeros` along the columns encode `locality` while the replication of same weights along the rows account for `stationarity`. If the above properties doesn't make sense for your input , then CNN's aren't the right choice.
+
+Verdict
+
+CNN's are a linear layer with lots of weight sharing and sparsity. RNN's just use weight sharing but BPTT takes the locality into account.
+
+Above we assumed the implicit notion of *Order* in our signals - let's remove this bias.
+
+General Seq-Seq mapping:
+
+Let’s call the input vectors 𝐱1,𝐱2,…,𝐱t and the corresponding output vectors 𝐲1,𝐲2,…,𝐲t. The vectors all have dimension k.
+
+
+<img width="772" alt="Screen Shot 2022-02-04 at 8 46 55 PM" src="https://user-images.githubusercontent.com/21222766/152624170-4de3d388-4ac2-4e74-b66c-fd7e1594f2ac.png">
+
+
+As we can see there is nothing fancy going on, no assumption of locality or implicit ordering.
+
+a. If we want our model to have some sensitivity to word ordering - we create a second vector of equal length, that represents the position of the word in the current sentence, and add this to the word embedding. We can make different choices here.
+
+b. And some historical baggage -> Encoder decoder style architecture.
+
+(1) the type of position en-codings
+(2) the use of copy decoders
+(3) modelsize, 
+(4) weight sharing
+(5) the use of interme-diate representations for prediction
 
 
